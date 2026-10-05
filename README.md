@@ -15,7 +15,8 @@ python3 eval.py                          # runs cases.json
 CHAT_MODEL=xiaomi/mimo-v2.6-flash python3 eval.py
 ```
 
-Python 3 standard library only.
+Python 3 standard library only. If you get `CERTIFICATE_VERIFY_FAILED` with the python.org
+installer, run its `Install Certificates.command` once, or `export SSL_CERT_FILE=/etc/ssl/cert.pem`.
 
 ## The five cases
 
@@ -29,7 +30,14 @@ Python 3 standard library only.
 
 ## Comparison
 
-See [`CHECKS.md`](CHECKS.md). Results to be filled in after both runs.
+| Model | Passed | Tokens in / out |
+|---|---|---|
+| minimax/minimax-m3 | 5/5 | 1552 / 772 |
+| xiaomi/mimo-v2.6-flash | 5/5 | 809 / 510 |
+
+Both models passed every case, but they split on the ambiguous case 4 (minimax said technical,
+mimo said billing) and on the urgency of case 1. mimo-v2.6-flash reached the same results with
+roughly half the tokens. Details in [`CHECKS.md`](CHECKS.md).
 
 ## A correction I made to the spec
 

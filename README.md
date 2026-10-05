@@ -1,45 +1,50 @@
-# Artifact-chain template
+# CPSC 415 Week 3: support-message classifier with a five-case eval
 
-Starting point for major project submissions in CPSC 415 (AI Integration, Trinity College). Click **Use this template** on GitHub to create your own repository from it. Do not fork.
+Classifies one customer-support message as `billing`, `technical`, `sales`, or `unknown`, with an
+urgency and a one-sentence reason, and evaluates that against five known cases on two models.
+Chain artifacts: [`intent/classifier.md`](intent/classifier.md) → [`spec.md`](spec.md).
 
-The course follows Anthropic's [AI-Native SDLC Playbook](https://claude.com/blog/the-ai-native-sdlc-playbook): every stage of the work leaves a short, version-controlled artifact. The agent writes most of the code. You decide what gets built, steer, verify, and explain every choice. These files are how you prove you understood what the agent built.
+## How to run
 
-## Early labs
-
-Week 1 uses the minimal repository described in the course handout. Later introductory labs complete only the stages assigned so far. This template describes the full chain for team projects and the final portfolio; it does not require unintroduced artifacts in Week 1. Project languages are chosen and justified, with one separate guided exercise in an unfamiliar language.
-
-## The chain
-
-| Stage | File | Written by | Approved by |
-|---|---|---|---|
-| Plan | `intent/<name>.md` | The agent, after interviewing you | You |
-| Design | `spec.md` | The agent, from the approved intent | You, against the intent |
-| Build | `plan.md`, then code on a branch | The agent | You, before any code |
-| Test | tests, lint, CI | The agent | You confirm the loop actually ran |
-| Deploy | a pull request reviewed against `REVIEW.md` | A separate reviewing agent | You merge |
-| Maintain | a new `intent/<name>.md` | Triggered by a bug, a ticket, or a model change | You triage |
-
-`CLAUDE.md` and `REVIEW.md` travel with the repo and are graded artifacts.
-
-## Rules that are graded
-
-- Intent and spec exist before code. Plan is approved before implementation. The commit history shows it.
-- One pull request per feature, from a branch, reviewed before merge. Do not commit to `main` directly after the first commit.
-- `spec.md` states the **language** and the **model** for each component and why.
-- `ANNOTATION.md` answers the four questions for the finished project.
-- No secrets in the repo. `.claude/settings.local.json` and `.env` are ignored; the `.example` file shows the shape.
-
-## Submitting
-
-Tag the commit you are submitting and put the repository URL plus the tag on Moodle:
-
-```
-git tag tp1-submitted
-git push origin tp1-submitted
+```bash
+export OPENROUTER_API_KEY=...            # never commit this
+export CHAT_BASE_URL=https://openrouter.ai/api/v1
+export CHAT_MODEL=minimax/minimax-m3
+python3 classify.py "I was charged twice this month"
+python3 eval.py                          # runs cases.json
+CHAT_MODEL=xiaomi/mimo-v2.6-flash python3 eval.py
 ```
 
-Tags the course uses: `intent-spec`, `tp1-submitted`, `tp2-submitted`, `portfolio-final`.
+Python 3 standard library only.
 
-## Running the agent
+## The five cases
 
-Copy `.claude/settings.local.json.example` to `.claude/settings.local.json` and fill in your OpenRouter key and model slugs, or use the `orclaude` launcher from the [course repository](https://github.com/kousen/ai-integration-course/tree/main/scripts).
+| # | Expect | What it is there to catch |
+|---|---|---|
+| 1 | billing | Double charge. Baseline: a model that fails this cannot do the task. |
+| 2 | technical | App crash after update. A plain bug report, no money involved. |
+| 3 | sales | Enterprise pricing for 40 seats. Mentions price, so it catches "price ⇒ billing" confusion. |
+| 4 | billing or technical | Checkout error *and* a charge. Genuinely ambiguous; either answer passes. |
+| 5 | unknown | Banana-bread recipe. Not a support request; catches a model forcing everything into a category. |
+
+## Comparison
+
+See [`CHECKS.md`](CHECKS.md). Results to be filled in after both runs.
+
+## A correction I made to the spec
+
+The first draft only validated `category`. I added that `urgency` must also be in
+{low, medium, high} and `reason` must be non-empty, because otherwise a reply like
+`{"category": "billing"}` would pass the eval while missing two-thirds of what the intent asks for.
+
+## One line I can explain
+
+In `classify.py`, `extract_json`:
+
+```python
+match = re.search(r"\{.*\}", reply, re.DOTALL)
+```
+
+If the reply is not pure JSON (models often wrap it in ```` ```json ```` fences or add a sentence),
+this grabs the span from the first `{` to the last `}` across newlines and parses that. If nothing
+parses, it raises `ClassifyError`, which the eval records as FAIL instead of crashing.

@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "message": "I was charged twice for my subscription this month. Please refund the duplicate payment.",
+    "expect_category": ["billing"],
+    "purpose": "Clear billing case: catches a model that cannot do the basic task."
+  },
+  {
+    "id": 2,
+    "message": "Since the latest update the app crashes every time I try to open a project. I've reinstalled twice.",
+    "expect_category": ["technical"],
+    "purpose": "Clear technical case: a bug report with no money involved."
+  },
+  {
+    "id": 3,
+    "message": "We're a team of 40 and are thinking about upgrading to your enterprise plan. Can someone send me pricing?",
+    "expect_category": ["sales"],
+    "purpose": "Clear sales case: mentions money (pricing) but is a purchase inquiry, so it catches a model that sees 'price' and says billing."
+  },
+  {
+    "id": 4,
+    "message": "Your checkout page threw an error but my card was still charged and I never got access.",
+    "expect_category": ["billing", "technical"],
+    "purpose": "Ambiguous case: both a bug and a charge; accepts either answer, catches only a wrong third category or unknown."
+  },
+  {
+    "id": 5,
+    "message": "What's a good recipe for banana bread that doesn't use eggs?",
+    "expect_category": ["unknown"],
+    "purpose": "Not a support request: must yield unknown; catches a model that forces every message into a category (hallucination)."
+  }
+]

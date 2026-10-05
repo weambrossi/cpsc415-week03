@@ -25,4 +25,4 @@ Routing, replying to the customer, batch processing of an inbox, a web interface
 ## Open questions
 None blocking. Whether `response_format` JSON schema helps is an optional experiment.
 
-**Approved by:** <your name>, <date>
+**Approved by:** Ethan Ambrossi, 2026-10-05
